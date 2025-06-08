@@ -24,7 +24,7 @@ void NFA::addSymbol(std::string c) {
     alphabet.insert(c);
 }
 
-bool NFA::run(const std::vector<std::string>& input) {
+bool NFA::run(const std::vector<std::string>& input) const {
     return runHelper(startState, input, 0);
 }
 
@@ -107,4 +107,26 @@ bool NFA::read_from_file(const std::string& filename) {
         return false;
     }
     return true;
+}
+
+void NFA::exportToDOT(const std::string& filename) const {
+    std::ofstream out(filename);
+    out << "digraph NFA {\n";
+    out << "    rankdir=LR;\n";
+    out << "    node [shape=doublecircle];";
+    for (const auto& state : acceptStates)
+        out << " " << state;
+    out << ";\n";
+    out << "    node [shape=circle];\n";
+    out << "    _start [shape=point];\n";
+    out << "    _start -> " << startState << ";\n";
+    for (const auto& trans : transitionTable) {
+        const auto& from = trans.first.first;
+        const auto& symbol = trans.first.second;
+        for (const auto& to : trans.second) {
+            out << "    " << from << " -> " << to << " [label=\"" << symbol << "\"];\n";
+        }
+    }
+    out << "}\n";
+    out.close();
 }

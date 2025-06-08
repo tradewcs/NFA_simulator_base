@@ -32,13 +32,14 @@ public:
     static NFA iteration(const NFA& nfa);
     static NFA iterationPlus(const NFA& nfa);
 
-    std::set<std::string> getUnreachable();
+    std::set<std::string> getUnreachable() const;
     std::string removeUnreachable();
-    std::string convertToDot();
 
-    bool run(const std::vector<std::string>& input);
+    void exportToDOT(const std::string& filename) const;
 
-    int getStatesCount() {
+    bool run(const std::vector<std::string>& input) const;
+
+    int getStatesCount() const {
         return states.size();
     }
 
@@ -51,5 +52,5 @@ public:
     static NFA generateRandom(int statesCount);
 
 private:
-    bool runHelper(std::string currentState, const std::vector<std::string>& input, int index);
+    bool runHelper(std::string currentState, const std::vector<std::string>& input, int index) const;
 };

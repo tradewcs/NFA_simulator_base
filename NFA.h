@@ -18,7 +18,7 @@ public:
     std::set<std::string> acceptStates;
 
 public:
-
+    NFA() = default;
     NFA(const std::set<std::string> states, const std::set<std::string> alphabet, std::string startState, const std::set<std::string> acceptStates)
         : states(states), alphabet(alphabet), startState(startState), acceptStates(acceptStates) { }
 
@@ -33,7 +33,7 @@ public:
     static NFA iterationPlus(const NFA& nfa);
 
     std::set<std::string> getUnreachable() const;
-    std::string removeUnreachable();
+    void removeUnreachable();
 
     void exportToDOT(const std::string& filename) const;
 
@@ -53,4 +53,8 @@ public:
 
 private:
     bool runHelper(std::string currentState, const std::vector<std::string>& input, int index) const;
+    
+    static std::string findAvailableSymbol(std::set<std::string> usedSymbols);
+    static std::string getNewState(std::set<std::string> states, std::string symbol);
 };
+

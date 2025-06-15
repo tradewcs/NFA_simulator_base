@@ -10,7 +10,6 @@ using json = nlohmann::json;
 
 class NFA {
 private:
-public:
     std::set<std::string> states;
     std::set<std::string> alphabet;
     std::map<std::pair<std::string, std::string>, std::set<std::string>> transitionTable;
@@ -52,7 +51,7 @@ public:
     static NFA generateRandom(int statesCount);
 
 private:
-    bool runHelper(std::string currentState, const std::vector<std::string>& input, int index) const;
+    bool runHelper(const std::string& currentState, const std::vector<std::string>& input, int index) const;
     
     static std::string findAvailableSymbol(std::set<std::string> usedSymbols);
     static std::string getNewState(std::set<std::string> states, std::string symbol);

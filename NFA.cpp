@@ -354,9 +354,29 @@ bool NFA::run(const std::vector<std::string>& input) const {
     return runHelper(startState, input, 0);
 }
 
-bool NFA::runHelper(std::string currentState, const std::vector<std::string>& input, int index) const {
+bool NFA::runHelper(const std::string& currentState, const std::vector<std::string>& input, int index) const {
+    if (index == input.size()) {
+        return acceptStates.count(currentState) > 0;
+    }
+
+    std::string symbol = input[index];
+    auto key = std::make_pair(currentState, symbol);
+
+    if (transitionTable.count(key) == 0) {
+        return false;
+    }
+
+    const std::set<std::string>& nextStates = transitionTable.at(key);
+
+    for (const auto& nextState : nextStates) {
+        if (runHelper(nextState, input, index + 1)) {
+            return true;
+        }
+    }
+
     return false;
 }
+
 
 std::string NFA::findAvailableSymbol(std::set<std::string> usedSymbols) {
     std::vector<std::string> possibleSybmols = {"S", "Q", "P", "A", "B", "C"};

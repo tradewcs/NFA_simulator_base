@@ -107,6 +107,8 @@ void NFA::exportToDOT(const std::string& filename) const {
     out << "    _start [shape=point];\n";
     out << "    _start -> " << startState << ";\n\n";
 
+    std::set<std::string> unreachable = getUnreachable();
+
     std::map<std::pair<std::string, std::string>, std::set<std::string>> grouped;
     for (const auto& [key, targets] : transitionTable) {
         const auto& from = key.first;
@@ -126,7 +128,11 @@ void NFA::exportToDOT(const std::string& filename) const {
             label += s;
             first = false;
         }
-        out << "    " << from << " -> " << to << " [label=\"" << label << "\"];\n";
+
+        if (unreachable.count(from))
+            out << "    " << from << " -> " << to << " [label=\"" << label << "\", style=dashed];\n";
+        else
+            out << "    " << from << " -> " << to << " [label=\"" << label << "\"];\n";
     }
 
     out << "}\n";
@@ -301,6 +307,48 @@ NFA NFA::alternative(const NFA& nfa1, const NFA& nfa2) {
     return result;
 }
 
+NFA NFA::iteration(const NFA& nfa) {
+    auto newAlphabet = nfa.alphabet;
+    auto newStates = nfa.states;
+
+    const auto newStartState = getNewState(newStates, findAvailableSymbol(newStates));
+    newStates.insert(newStartState);
+
+    auto newAcceptStates = nfa.acceptStates;
+    newAcceptStates.insert(newStartState);
+
+    std::map<std::pair<std::string, std::string>, std::set<std::string>> newTransitions;
+
+    for (const auto& [key, toStates] : nfa.transitionTable) {
+        if (key.first != nfa.startState) continue;
+        newTransitions[{newStartState, key.second}].insert(toStates.begin(), toStates.end());
+    }
+
+    for (const auto& state : nfa.acceptStates) {
+        for (const auto& symbol : nfa.alphabet) {
+            if (auto it = nfa.transitionTable.find({nfa.startState, symbol});
+                it != nfa.transitionTable.end()) {
+                newTransitions[{state, symbol}].insert(it->second.begin(), it->second.end());
+            }
+        }
+    }
+
+    for (const auto& [key, toStates] : nfa.transitionTable) {
+        newTransitions[key].insert(toStates.begin(), toStates.end());
+    }
+
+    NFA result{newStates, newAlphabet, newStartState, newAcceptStates};
+    result.transitionTable = std::move(newTransitions);
+
+    return result;
+}
+
+NFA NFA::iterationPlus(const NFA& nfa) {
+    NFA result = NFA::iteration(nfa);
+    result.acceptStates.erase(result.startState);
+
+    return result;
+}
 
 bool NFA::run(const std::vector<std::string>& input) const {
     return runHelper(startState, input, 0);
